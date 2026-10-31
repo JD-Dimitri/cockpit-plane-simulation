@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Types, lint, tests, interface hors ligne
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      # Premier passage sans pnpm-lock.yaml : committer le fichier généré, puis passer en --frozen-lockfile.
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Test de fumée (aucune requête réseau, avertissement, moteur)
+        run: pnpm e2e apps/desktop/dist
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capture-interface
+          path: test-results/
+          if-no-files-found: ignore
+
+  windows-installer:
+    name: Installeur Windows (NSIS, WebView2 hors ligne)
+    needs: checks
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri -> target
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm desktop:build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installeur-windows
+          path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error

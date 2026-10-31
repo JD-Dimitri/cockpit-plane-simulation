@@ -7,3 +7,4 @@ test-results/
 legacy/prototype-v0/preview.html
 *.log
 .DS_Store
+tools/offline-check/out/

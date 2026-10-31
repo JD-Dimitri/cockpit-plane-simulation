@@ -1,0 +1,16 @@
+{
+  "$comment": "Contrôle de types HORS LIGNE des paquets (sans node_modules). La vérification officielle reste « pnpm typecheck ».",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "typeRoots": ["/opt/npm-tools/node_modules/@types"],
+    "paths": {
+      "vitest": ["./vitest-shim.d.ts"],
+      "zod": ["/opt/npm-tools/node_modules/zod/index.d.cts"],
+      "@a350/sim-core": ["../../packages/sim-core/src/index.ts"],
+      "@a350/aircraft-a350": ["../../packages/aircraft-a350/src/index.ts"]
+    }
+  },
+  "include": ["../../packages/*/src", "../../packages/*/test", "../../packages/*/data", "../../apps/desktop/src/sim", "../../apps/desktop/test", "../../apps/desktop/src/i18n"]
+}

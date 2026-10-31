@@ -1,0 +1,36 @@
+{
+  "$comment": "Données de l'avion. Une valeur 'documenté' cite une source de sources.json ; 'estimé' = réglé ou calculé sans source directe ; 'fictif' = inventé. Valeurs reprises du prototype v0 (core.js, objet AC) et requalifiées d'après docs/FUNCTIONAL_AUDIT.md.",
+  "mass": {
+    "mtow": { "value": 283000, "unit": "kg", "status": "documenté", "source": "AIRBUS-FF-2022" },
+    "mlw": { "value": 207000, "unit": "kg", "status": "estimé", "note": "Absente des sources consultées ; à sourcer." },
+    "mzfw": { "value": 195700, "unit": "kg", "status": "estimé", "note": "À sourcer." },
+    "oew": { "value": 142400, "unit": "kg", "status": "estimé", "note": "Masse à vide en opération du prototype ; dépend de l'aménagement." }
+  },
+  "fuel": {
+    "capacity": { "value": 141000, "unit": "L", "status": "documenté", "source": "AIRBUS-FF-2022" },
+    "density": { "value": 0.785, "unit": "kg/L", "status": "estimé", "note": "Densité de calcul usuelle du kérosène, hypothèse du projet." },
+    "tankLeft": { "value": 39000, "unit": "kg", "status": "estimé" },
+    "tankRight": { "value": 39000, "unit": "kg", "status": "estimé" },
+    "tankCenter": { "value": 32500, "unit": "kg", "status": "estimé" }
+  },
+  "geometry": {
+    "wingspan": { "value": 64.75, "unit": "m", "status": "documenté", "source": "AIRBUS-FF-2022" },
+    "length": { "value": 66.8, "unit": "m", "status": "documenté", "source": "AIRBUS-FF-2022" },
+    "wingArea": { "value": 443, "unit": "m2", "status": "estimé", "note": "Absente des sources consultées ; à sourcer." }
+  },
+  "engine": {
+    "model": { "value": "Trent XWB-84", "status": "documenté", "source": "AIRBUS-FF-2022" },
+    "thrustTakeoff": { "value": 374500, "unit": "N", "status": "documenté", "source": "EASA-TCDS-E111-i12", "note": "Décollage 5 min, poussée nette par moteur. Le prototype utilisait 374 000 N." },
+    "thrustMaxContinuous": { "value": 317600, "unit": "N", "status": "documenté", "source": "EASA-TCDS-E111-i12" },
+    "n1Reference": { "value": 2700, "unit": "rpm", "status": "documenté", "source": "EASA-TCDS-E111-i12", "note": "100 % N1" },
+    "n2Reference": { "value": 8200, "unit": "rpm", "status": "documenté", "source": "EASA-TCDS-E111-i12", "note": "100 % N2" },
+    "n3Reference": { "value": 12600, "unit": "rpm", "status": "documenté", "source": "EASA-TCDS-E111-i12", "note": "100 % N3" },
+    "tgtTakeoff": { "value": 900, "unit": "degC", "status": "documenté", "source": "EASA-TCDS-E111-i12", "note": "TGT (LPT stage 1 NGV), 5 min." },
+    "tgtMaxContinuous": { "value": 850, "unit": "degC", "status": "documenté", "source": "EASA-TCDS-E111-i12" },
+    "tgtGroundStart": { "value": 700, "unit": "degC", "status": "documenté", "source": "EASA-TCDS-E111-i12" }
+  },
+  "speeds": {
+    "vmo": { "value": 340, "unit": "kt", "status": "estimé", "note": "À sourcer." },
+    "mmo": { "value": 0.89, "unit": "mach", "status": "estimé", "note": "À sourcer." }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "AIRBUS-FF-2022": {
+    "title": "Airbus — A350 Family Facts & Figures (septembre 2022)",
+    "url": "https://www.airbus.com/sites/g/files/jlcbta136/files/2022-09/airbus-a350-family-facts-and-figures_sept-2022.pdf",
+    "consulted": "2026-10-31"
+  },
+  "EASA-TCDS-E111-i12": {
+    "title": "EASA — Type-Certificate Data Sheet E.111, Rolls-Royce Trent XWB, issue 12",
+    "url": "https://www.easa.europa.eu/sites/default/files/dfu/EASA%20E111%20TCDS%20issue%2012_Trent%20XWB.pdf",
+    "consulted": "2026-10-31"
+  },
+  "SIA-EAIP-FMEE-2026-08-06": {
+    "title": "SIA — eAIP FR-AD-2.FMEE, AIRAC 06/08/2026",
+    "url": "https://www.sia.aviation-civile.gouv.fr/media/dvd/eAIP_06_AUG_2026/RUN/AIRAC-2026-08-06/html/eAIP/FR-AD-2.FMEE-fr-FR.html",
+    "consulted": "2026-10-31"
+  },
+  "DIRCAM-MIAC1-LFPG": {
+    "title": "DIRCAM — MIAC 1 Paris-Charles de Gaulle (LFPG)",
+    "url": "https://www.dircam.dsae.defense.gouv.fr/images/Stories/Doc/MIAC1/miac1_paris_cdg_lfpg.pdf",
+    "consulted": "2026-10-31"
+  },
+  "LEEHAM-2015-A350-COCKPIT": {
+    "title": "Leeham News — Airbus A350 cockpit compared to A320/A330 (2015)",
+    "url": "https://leehamnews.com/2015/06/01/airbus-a350-cockpit-compared-to-a320a330/",
+    "consulted": "2026-10-31"
+  },
+  "FLIGHTGLOBAL-2006-A350-SYSTEMS": {
+    "title": "FlightGlobal — Borrowing from A380: A350 XWB (2006, article de conception)",
+    "url": "https://flightglobal.com/borrowing-from-a380-a350-xwb/71027.article",
+    "consulted": "2026-10-31"
+  }
+}

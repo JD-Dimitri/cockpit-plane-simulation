@@ -7,7 +7,7 @@
 | Couche | Choix | Pourquoi |
 |---|---|---|
 | Application | **Tauri 2** (WebView2 sur Windows), installeur NSIS ou MSI | Léger (quelques Mo contre plus de 100 Mo pour Electron), hors ligne, accès fichiers contrôlé par permissions ; backend Rust disponible plus tard pour le matériel (HID, série) |
-| Interface | **React 18 + TypeScript strict + Vite** | Composants testables, échappement automatique (fin de l'injection `innerHTML`) |
+| Interface | **React 19 + TypeScript strict + Vite** | Composants testables, échappement automatique (fin de l'injection `innerHTML`) |
 | Moteur | **TypeScript pur** dans un **Web Worker**, pas fixe (60 à 120 Hz) | Testable sous Node (Vitest), n'interrompt pas l'affichage, déterministe |
 | Données avion | **JSON validé par Zod** | Valeurs lisibles, sourcées, vérifiées au démarrage |
 | État de l'interface | **Zustand**, alimenté par des instantanés du moteur à 30 Hz | React ne se re-rend pas à chaque pas de physique |

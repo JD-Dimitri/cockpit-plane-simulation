@@ -6,7 +6,14 @@ Catégories : Ajouté · Modifié · Corrigé · Supprimé · Données (valeurs 
 ## [Non publié]
 
 ### Ajouté
-- Phase 0 : les 10 documents de cadrage dans `docs/` (v0.1).
+- Phase 0 : les 10 documents de cadrage dans `docs/` (v0.1) ; prototype gelé dans `legacy/prototype-v0` (étiquette `v0.0.0`), scripts de test rendus indépendants du chemin.
+- Phase 1 : monorepo pnpm ; `@a350/sim-core` (boucle à pas fixe 60 Hz, pause, accélération ×1 à ×256, plafond de pas par image, journal de commandes, rejeu déterministe, sauvegarde/reprise, ISA, géodésie, conversions vrai/magnétique) ; `@a350/aircraft-a350` (données sourcées, validation Zod) ; application React 19 + Vite avec moteur en Web Worker, avertissement au premier lancement, sonde ISA, globe Three.js, tableau des statuts ; coquille Tauri 2 (NSIS, WebView2 hors ligne, CSP) ; CI GitHub Actions ; test de fumée Playwright.
+
+### Modifié
+- Poussée au décollage portée à 374 500 N (EASA TCDS E.111), au lieu de 374 000 N dans v0.
+
+### Sécurité
+- CSP `default-src 'self'` (navigateur et Tauri), aucune requête externe vérifiée par test ; ESLint interdit `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `dangerouslySetInnerHTML`.
 
 ### Données
 - FMEE : pistes 12/30 à 102° / 282° vrais (le prototype utilise 120° / 300°), piste 14/32 (2 670 m, 116° / 296°) absente du prototype, déclinaison 19,2° W, ILS listé seulement en piste 14 (LOC 110,3 MHz) — source eAIP FMEE AIRAC 06/08/2026. À corriger en phase 2.

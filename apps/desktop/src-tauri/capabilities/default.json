@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissions minimales de la fenêtre principale (phase 1 : aucune API native utilisée).",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

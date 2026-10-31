@@ -30,7 +30,19 @@ Le prototype v0 reste jouable pendant toute la refonte.
 | Relecture externe de l'audit (idéalement quelqu'un qui connaît l'A350) | à faire |
 | Décision D-1 : fréquences réelles ou fictives | à faire |
 | Décision D-2 : approche en piste 12 à FMEE (pas d'ILS publié) | à faire |
-| Gel du prototype : dépôt Git, étiquette `v0.0.0`, scripts de test rapatriés dans `tests/legacy/` | à faire |
+| Gel du prototype : dépôt Git, étiquette `v0.0.0`, scripts de test rapatriés dans `legacy/prototype-v0/tests/` | fait |
+
+## 2 bis. Phase 1 — détail
+
+| Tâche | État |
+|---|---|
+| Monorepo pnpm, TypeScript strict, ESLint (règles d'architecture et anti-`innerHTML`) | fait |
+| `sim-core` : pas fixe, pause, accélération, rejeu, sauvegarde/reprise, ISA, géodésie, déclinaison | fait, 22 tests (dont parité exacte avec v0) ; 38 tests au total avec les données et l’application |
+| `aircraft-a350` : données avec statut et sources, validation au chargement (EF-001) | fait |
+| Application React : avertissement (EF-004), Worker moteur, instantanés 30 Hz, sonde ISA, globe Three.js, tableau des données | fait, test de fumée 16/16 (build de secours) |
+| Coquille Tauri 2 : CSP stricte, permissions minimales, NSIS, WebView2 hors ligne, icônes | écrite, **non compilée** (registre crates.io inaccessible) |
+| CI GitHub Actions : tests sous Linux, installeur sous Windows | écrite, **non exécutée** |
+| Livrable vérifiable : installeur Windows qui s'ouvre sans réseau | **à valider** au premier passage de la CI ou sur le PC |
 
 ## 3. Risques
 
