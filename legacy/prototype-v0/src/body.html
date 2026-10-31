@@ -1,0 +1,325 @@
+<title>Cockpit A350 Réunion–Paris</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=B612:wght@400;700&family=B612+Mono:wght@400;700&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap">
+<style>/*CSS*/</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand">
+      <span class="brand-name">COCKPIT PLANE SIMULATION</span>
+      <span class="brand-sub">Airbus A350-900 · Saint-Denis FMEE ⇄ Paris</span>
+    </div>
+    <div class="ctrls">
+      <button id="btnTutor" class="btn primary">Mode pédagogique</button>
+      <label class="fld"><span>Vol</span><select id="routeSel"></select></label>
+      <label class="fld"><span>Départ</span>
+        <select id="scenSel">
+          <option value="cold">Cockpit froid au parking</option>
+          <option value="ready">Aligné sur la piste</option>
+          <option value="cruise">Croisière FL370</option>
+          <option value="approach">Approche finale 12 NM</option>
+        </select></label>
+      <button id="btnLoad" class="btn primary">Charger</button>
+      <div class="rate" title="Accélération du temps (touches + et −)">
+        <button id="rateDown" class="btn sq" aria-label="Ralentir">−</button>
+        <span id="rateLbl">×1</span>
+        <button id="rateUp" class="btn sq" aria-label="Accélérer">+</button>
+      </div>
+      <button id="btnPause" class="btn">Pause</button>
+      <label class="fld"><span>Pannes</span>
+        <select id="failSel">
+          <option value="">Aucune</option>
+          <option value="eng1fire">Feu moteur 1</option>
+          <option value="eng2fire">Feu moteur 2</option>
+          <option value="eng1fail">Panne moteur 1</option>
+          <option value="gen1a">Générateur 1A</option>
+          <option value="hydG">Pompe hydraulique verte</option>
+        </select></label>
+      <button id="btnSound" class="btn">Son : non</button>
+      <button id="btnHelp" class="btn">Commandes</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab on" data-view="main" role="tab">Vue pilote</button>
+    <button class="tab" data-view="ovhd" role="tab">Panneau plafonnier</button>
+    <button class="tab" data-view="ped" role="tab">Pédestal &amp; FMS</button>
+    <button class="tab" data-view="radio" role="tab">Radio &amp; équipage</button>
+    <button class="tab" data-view="log" role="tab">Journal de bord</button>
+    <button class="tab" data-view="calc" role="tab">Calculs</button>
+    <div class="status" id="statusLine"></div>
+  </nav>
+
+  <section class="guide" id="guide">
+    <div class="g-phase" id="gPhase">PRÉVOL</div>
+    <div class="g-step"><span class="g-n" id="gN">1</span><span id="gTxt">Chargement…</span></div>
+    <button class="btn" id="gShow">Montrer</button>
+    <button class="btn ghost" id="gSkip" title="Passer cette étape">Passer</button>
+    <button class="btn ghost" id="gRwy" hidden>Aligner sur la piste</button>
+    <button class="btn primary" id="gRestart" hidden>Recommencer ce scénario</button>
+    <button class="btn primary" id="gReturn" hidden>Lancer le vol retour</button>
+    <div class="g-msg" id="gMsg" hidden></div>
+  </section>
+
+  <div class="radiobar" id="radioBar" hidden aria-live="polite">
+    <div class="rb-msg" id="rbMsg"></div>
+    <button class="btn primary" id="rbBtn" hidden title="Répéter l'instruction au contrôleur">Collationner</button>
+  </div>
+  <div class="touchbar" id="touchBar" hidden>
+    <div class="tb-stick">
+      <div class="tb-hint top">↑ piquer</div>
+      <div class="stickpad big" id="stickPad2"><i id="stickDot2"></i></div>
+      <div class="tb-hint">↓ cabrer</div>
+    </div>
+    <div class="tb-btns">
+      <button class="btn" data-act="tla-up">Gaz +</button>
+      <button class="btn" data-act="tla-dn">Gaz −</button>
+      <button class="btn" data-act="flap+">Volets +</button>
+      <button class="btn" data-act="flap-">Volets −</button>
+      <button class="btn" data-act="gear" id="tbGear">Train</button>
+      <button class="btn" data-act="ap1" id="tbAP">AP 1</button>
+      <button class="btn" id="tbBrake">Freins</button>
+      <button class="btn" data-act="tb-rev">Reverse</button>
+      <button class="btn" data-act="tla-fine-">Gaz fin −</button>
+      <button class="btn" data-act="tla-fine+">Gaz fin +</button>
+      <button class="btn" data-act="park">Frein parking</button>
+      <button class="btn" data-act="taxi-auto" id="tbAutoTaxi">Roulage auto</button>
+    </div>
+    <div class="tb-tiller"><span>◀ gauche</span><div class="tiller" id="tiller" aria-label="Volant de roulage"><i id="tillerKnob"></i></div><span>droite ▶</span><b>Volant (roulette de nez)</b></div>
+    <div class="tb-read" id="tbRead"></div>
+  </div>
+  <section class="page" id="v-radio" hidden>
+    <h2>Radio &amp; équipage</h2>
+    <p class="intro">Échanges entre le contrôle aérien, toi (commandant), le copilote et le chef de cabine. Quand le contrôleur te donne une instruction, appuie sur <b>Collationner</b> pour la répéter : c'est obligatoire en vrai. Sans réponse, le copilote le fait à ta place. Aéroports français : en français ; contrôles étrangers : en anglais avec la traduction. Secteurs et fréquences simplifiés.</p>
+    <div class="radio" id="radioBody"></div>
+  </section>
+  <section class="page" id="v-log" hidden>
+    <h2>Journal de bord</h2>
+    <p class="intro">Les heures sont en UTC, comme dans les vrais journaux : OUT (départ du poste), OFF (décollage), ON (atterrissage), IN (arrivée au poste). Temps bloc = de OUT à IN ; temps de vol = de OFF à ON.</p>
+    <div id="logBody"></div>
+  </section>
+  <section class="page" id="v-calc" hidden>
+    <h2>Calculs du vol</h2>
+    <p class="intro">Tous les calculs du vol, avec la formule et l'explication. Les valeurs marquées ● viennent du vol en direct ; décoche la case pour faire tes propres essais.</p>
+    <div id="calcBody"></div>
+  </section>
+  <main class="stage-wrap" id="stageWrap">
+    <div class="stage" id="stage">
+
+      <!-- ================= VUE PILOTE ================= -->
+      <div class="view" id="v-main">
+        <div class="winwrap"><canvas id="cvWin3d"></canvas><canvas id="cvWin" class="win"></canvas></div>
+        <div class="glare">
+          <div class="efis" id="efisCp">
+            <div class="cap">EFIS CP</div>
+            <div class="efis-row">
+              <div class="knob-w"><div class="disp" id="baroDisp">QNH 1013</div>
+                <div class="kb"><button class="k" data-act="baro-" aria-label="Baro moins">−</button><button class="k" data-act="std">STD</button><button class="k" data-act="baro+" aria-label="Baro plus">+</button></div><div class="lab">BARO</div></div>
+              <button class="pbg" id="pbFD" data-act="fd"><i></i>FD</button>
+              <button class="pbg" id="pbLS" data-act="ls"><i></i>LS</button>
+              <button class="pbg" id="pbTERR" data-act="terr"><i></i>TERR</button>
+              <div class="knob-w"><div class="disp" id="ndModeDisp">ARC</div>
+                <div class="kb"><button class="k" data-act="mode-">◀</button><button class="k" data-act="mode+">▶</button></div><div class="lab">ND MODE</div></div>
+              <div class="knob-w"><div class="disp" id="ndRngDisp">40</div>
+                <div class="kb"><button class="k" data-act="rng-">◀</button><button class="k" data-act="rng+">▶</button></div><div class="lab">RANGE NM</div></div>
+            </div>
+          </div>
+          <div class="masters">
+            <button class="mw" id="mwBtn" data-act="master">MASTER<br>WARN</button>
+            <button class="mc" id="mcBtn" data-act="master">MASTER<br>CAUT</button>
+          </div>
+          <div class="fcu" id="fcu">
+            <div class="cap">AFS CP</div>
+            <div class="fcu-row">
+              <div class="fk" id="fcuSpd"><div class="fl"><button class="k sm" data-act="spdmach">SPD/MACH</button></div>
+                <div class="disp big" id="spdDisp">---•</div>
+                <div class="kb"><button class="k" data-act="spd-">−</button><button class="k" data-act="spdpush">PUSH</button><button class="k" data-act="spdpull">PULL</button><button class="k" data-act="spd+">+</button></div></div>
+              <div class="fk" id="fcuHdg"><div class="fl"><span>HDG</span></div>
+                <div class="disp big" id="hdgDisp">---•</div>
+                <div class="kb"><button class="k" data-act="hdg-">−</button><button class="k" data-act="hdgpush">PUSH</button><button class="k" data-act="hdgpull">PULL</button><button class="k" data-act="hdg+">+</button></div></div>
+              <div class="fpb">
+                <button class="pbg" id="pbLOC" data-act="loc"><i></i>LOC</button>
+                <div class="pair"><button class="pbg" id="pbAP1" data-act="ap1"><i></i>AP 1</button><button class="pbg" id="pbAP2" data-act="ap2"><i></i>AP 2</button></div>
+                <button class="pbg" id="pbATHR" data-act="athr"><i></i>A/THR</button>
+              </div>
+              <div class="fk" id="fcuAlt"><div class="fl"><span>ALT</span><button class="k sm" data-act="altinc" id="altIncBtn">1000</button></div>
+                <div class="disp big" id="altDisp">10000</div>
+                <div class="kb"><button class="k" data-act="alt-">−</button><button class="k" data-act="altpush">PUSH</button><button class="k" data-act="altpull">PULL</button><button class="k" data-act="alt+">+</button></div></div>
+              <div class="fpb">
+                <button class="pbg" id="pbEXPED" data-act="exped"><i></i>EXPED</button>
+                <button class="pbg" id="pbAPPR" data-act="appr"><i></i>APPR</button>
+              </div>
+              <div class="fk" id="fcuVs"><div class="fl"><span>V/S</span></div>
+                <div class="disp big" id="vsDisp">-----</div>
+                <div class="kb"><button class="k" data-act="vs-">−</button><button class="k" data-act="vspush">PUSH</button><button class="k" data-act="vspull">PULL</button><button class="k" data-act="vs+">+</button></div></div>
+            </div>
+          </div>
+          <div class="clock">
+            <div class="cap">CLOCK</div>
+            <div class="disp big" id="clockDisp">00:00</div>
+            <div class="lab">UTC</div>
+            <div class="disp" id="etDisp">ET 00:00</div>
+          </div>
+        </div>
+        <div class="dus">
+          <figure><canvas id="cvPFD"></canvas><figcaption>PFD</figcaption></figure>
+          <figure><canvas id="cvND"></canvas><figcaption>ND</figcaption></figure>
+          <figure><canvas id="cvEWD"></canvas><figcaption>EWD</figcaption></figure>
+          <figure><canvas id="cvSD"></canvas><figcaption>SD</figcaption></figure>
+        </div>
+        <div class="lower">
+          <div class="pnl isis"><canvas id="cvISIS"></canvas><div class="lab">ISIS</div></div>
+          <div class="pnl gearp">
+            <div class="cap">L/G</div>
+            <div class="glights"><span id="gl1"></span><span id="gl2"></span><span id="gl3"></span></div>
+            <button class="gear-lever" id="gearLever" data-act="gear"><span>DOWN</span></button>
+            <div class="lab" id="gearLbl">LDG GEAR</div>
+          </div>
+          <div class="pnl abrk">
+            <div class="cap">AUTO BRK</div>
+            <div class="abtns" id="abBtns"></div>
+            <div class="row2"><button class="pbg" id="pbBtv" data-act="nws"><i></i>A/SKID</button><button class="pbg" id="pbBrkFan" data-act="brkfan"><i></i>BRK FAN</button></div>
+          </div>
+          <div class="pnl ecp">
+            <div class="cap">ECAM CONTROL PANEL</div>
+            <div class="ecp-grid" id="ecpBtns"></div>
+          </div>
+          <div class="pnl stick">
+            <div class="cap">SIDESTICK</div>
+            <div class="stickpad" id="stickPad"><i id="stickDot"></i></div>
+            <div class="lab">glisser · flèches</div>
+          </div>
+          <div class="pnl info" id="infoPanel"></div>
+        </div>
+      </div>
+
+      <!-- ================= PLAFONNIER ================= -->
+      <div class="view" id="v-ovhd" hidden>
+        <div class="ovhd" id="ovhd"></div>
+      </div>
+
+      <!-- ================= PÉDESTAL & FMS ================= -->
+      <div class="view" id="v-ped" hidden>
+        <div class="ped">
+          <div class="mfd">
+            <div class="mfd-tabs" id="mfdTabs"></div>
+            <div class="mfd-body" id="mfdBody"></div>
+          </div>
+          <div class="pedr">
+            <div class="pnl thr">
+              <div class="cap">THRUST LEVERS</div>
+              <div class="thr-wrap">
+                <div class="detents"><span>TOGA</span><span>FLX MCT</span><span>CL</span><span>IDLE</span><span>REV</span></div>
+                <div class="lever-track" id="thrTrack"><div class="lever" id="thrLever"><b>1 · 2</b></div></div>
+                <div class="thr-btns">
+                  <button class="k" data-act="tla-toga">TOGA</button>
+                  <button class="k" data-act="tla-flx">FLX/MCT</button>
+                  <button class="k" data-act="tla-cl">CL</button>
+                  <button class="k" data-act="tla-idle">IDLE</button>
+                  <button class="k" data-act="tla-rev">REV</button>
+                  <button class="k red" data-act="athrdisc" title="Déconnexion A/THR (touche T)">A/THR OFF</button>
+                </div>
+              </div>
+            </div>
+            <div class="pnl engp">
+              <div class="cap">ENG</div>
+              <div class="eng-row">
+                <div class="eng-m"><div class="lights"><span class="fire" id="fireLt1">FIRE</span><span class="fault" id="faultLt1">FAULT</span></div>
+                  <button class="sw" id="master1" data-act="master1"><b></b></button><div class="lab">MASTER 1</div></div>
+                <div class="eng-mode"><div class="disp" id="engModeDisp">NORM</div>
+                  <div class="kb"><button class="k" data-act="mode-l">◀</button><button class="k" data-act="mode-r">▶</button></div>
+                  <div class="lab">CRANK · NORM · IGN START</div></div>
+                <div class="eng-m"><div class="lights"><span class="fire" id="fireLt2">FIRE</span><span class="fault" id="faultLt2">FAULT</span></div>
+                  <button class="sw" id="master2" data-act="master2"><b></b></button><div class="lab">MASTER 2</div></div>
+              </div>
+            </div>
+            <div class="pnl levers2">
+              <div class="lev2">
+                <div class="cap">SPEED BRAKE</div>
+                <div class="stepper" id="spdbrkSteps"></div>
+              </div>
+              <div class="lev2">
+                <div class="cap">FLAPS</div>
+                <div class="stepper" id="flapSteps"></div>
+              </div>
+              <div class="lev2">
+                <div class="cap">PARK BRK</div>
+                <button class="park" id="parkBtn" data-act="park"><span>ON</span></button>
+              </div>
+              <div class="lev2">
+                <div class="cap">RUD TRIM</div>
+                <div class="disp" id="rudDisp">0.0</div>
+                <div class="kb"><button class="k" data-act="rud-">L</button><button class="k" data-act="rud0">RESET</button><button class="k" data-act="rud+">R</button></div>
+              </div>
+            </div>
+            <div class="pnl radios">
+              <div class="rad"><div class="cap">RMP 1 · VHF 1</div>
+                <div class="rmp"><div class="disp" id="vhfAct">118.700</div><button class="k" data-act="swap">⇄</button><div class="disp dim" id="vhfStby">121.500</div></div>
+                <div class="kb"><button class="k" data-act="vhf-">−</button><button class="k" data-act="vhf+">+</button></div></div>
+              <div class="rad"><div class="cap">ATC / TCAS</div>
+                <div class="rmp"><div class="disp" id="xpdrDisp">2000</div><div class="disp" id="xpdrMode">STBY</div></div>
+                <div class="kb"><button class="k" data-act="sq">SQWK</button><button class="k" data-act="xpdr">MODE</button><button class="k" data-act="ident">IDENT</button></div></div>
+              <div class="rad"><div class="cap">WXR</div>
+                <div class="rmp"><div class="disp" id="wxrDisp">OFF</div></div>
+                <div class="kb"><button class="k" data-act="wxr">ON / OFF</button></div></div>
+              <div class="rad"><div class="cap">SERVICES SOL</div>
+                <div class="kb col"><button class="k" data-act="gpu" id="gpuBtn">GPU</button><button class="k" data-act="doors" id="doorsBtn">PORTES</button></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <div class="tut-rings" id="tutRings" aria-hidden="true"></div>
+  <div class="tutor" id="tutor" hidden role="dialog" aria-live="polite" aria-label="Mode pédagogique">
+    <div class="tut-head"><span class="tut-num" id="tutNum">1</span><span class="tut-step" id="tutStep"></span></div>
+    <p class="tut-txt" id="tutTxt"></p>
+    <p class="tut-why" id="tutWhy"></p>
+    <div class="tut-more" id="tutMore" hidden></div>
+    <div class="tut-prog" id="tutProg"></div>
+    <div class="tut-btns"><button class="btn" id="tutPrev">◀ Précédente</button><button class="btn" id="tutNext">Passer cette étape</button><button class="btn" id="tutLesson">Leçon</button><button class="btn ghost" id="tutDetail">Détails : oui</button><button class="btn primary" id="tutReturn" hidden>Lancer le vol retour</button></div>
+  </div>
+  <button class="help-fab" id="helpFab" aria-label="Aide : appuie puis touche un élément" aria-pressed="false" title="Appuie, puis touche un élément pour l'expliquer">?</button>
+  <div class="help-hint" id="helpHint" hidden>Touche un bouton, un bloc ou un écran pour l'expliquer · « ? » pour annuler</div>
+  <div class="help-sel" id="helpSel" hidden aria-hidden="true"></div>
+  <dialog class="help hdlg" id="helpDlg2">
+    <p class="hwhere" id="hWhere"></p>
+    <h2 id="hTitle"></h2>
+    <div class="hbody" id="hBody"></div>
+    <form method="dialog" class="hbtns"><button class="btn primary">Fermer</button><button class="btn" type="button" id="hGroup" hidden>Tout le bloc</button></form>
+  </dialog>
+  <dialog class="help" id="lessonDlg"><h2 id="lessonTitle">Leçon</h2><p id="lessonTxt"></p><form method="dialog"><button class="btn primary">Compris</button></form></dialog>
+  <dialog class="help" id="helpDlg">
+    <h2>Commandes clavier</h2>
+    <table>
+      <tr><th>↑ / ↓</th><td>Manche : piquer / cabrer</td></tr>
+      <tr><th>← / →</th><td>Manche : roulis gauche / droite</td></tr>
+      <tr><th>Q / D</th><td>Palonnier, et roulette de nez au sol</td></tr>
+      <tr><th>Z (ou W) / S</th><td>Manettes : cran suivant / précédent (IDLE, CL, FLX/MCT, TOGA)</td></tr>
+      <tr><th>R</th><td>Inverseurs de poussée (au sol, manettes IDLE)</td></tr>
+      <tr><th>F / V</th><td>Volets : sortir / rentrer d'un cran</td></tr>
+      <tr><th>G</th><td>Train d'atterrissage</td></tr>
+      <tr><th>E · Maj+E</th><td>Aérofreins : un cran · armer les spoilers sol</td></tr>
+      <tr><th>Espace</th><td>Freins (maintenir)</td></tr>
+      <tr><th>B</th><td>Frein de parking</td></tr>
+      <tr><th>A · X</th><td>Pilote auto 1 · déconnexion AP</td></tr>
+      <tr><th>T</th><td>A/THR : engager / déconnecter</td></tr>
+      <tr><th>+ / −</th><td>Accélération du temps</td></tr>
+      <tr><th>P</th><td>Pause</td></tr>
+      <tr><th>1 à 6</th><td>Vue pilote · plafonnier · pédestal · radio · journal · calculs</td></tr>
+      <tr><th>K · Maj+Z/S</th><td>Roulage auto · gaz fin</td></tr>
+      <tr><th>C</th><td>Collationner une instruction radio</td></tr>
+    </table>
+    <p><b>Aide « ? »</b> : appuie sur le bouton « ? » à droite, puis touche n'importe quel bouton, bloc ou écran : une fenêtre explique ce que c'est et à quoi ça sert. Rien n'est actionné pendant ce geste. Toucher un bloc entier donne l'explication de tous ses boutons.</p>
+    <p>Le guide en haut de l'écran donne l'étape suivante. « Montrer » ouvre le bon panneau et fait clignoter la commande.</p>
+    <p class="note">Relief et images satellite : NASA Blue Marble (domaine public), via le projet webgl-earth de Bjørn Sandvik ; résolution ≈ 10 km.</p>
+    <p class="note">Simulation pédagogique : disposition inspirée de l'A350-900, valeurs approximatives, non certifiée pour l'entraînement au vol réel.</p>
+    <form method="dialog"><button class="btn primary">Fermer</button></form>
+  </dialog>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>/*JS*/</script>

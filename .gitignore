@@ -1,0 +1,9 @@
+node_modules/
+dist/
+target/
+coverage/
+playwright-report/
+test-results/
+legacy/prototype-v0/preview.html
+*.log
+.DS_Store

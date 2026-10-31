@@ -1,0 +1,11 @@
+import pathlib
+s=pathlib.Path('src')
+html=(s/'body.html').read_text()
+css=(s/'style.css').read_text()
+js='\n'.join((s/f).read_text() for f in ['terrain_data.js','voice_data.js','core.js','flight.js','taxi.js','render.js','terrain3d.js','tutor.js','comms.js','logbook.js','calc.js','help.js','ui.js'])
+out=html.replace('/*CSS*/',css).replace('/*JS*/',js)
+pathlib.Path('cockpit-a350.html').write_text(out)
+# version autonome pour test local (squelette ajouté)
+prev=out.replace('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>','<script src="three.r128.min.js"></script>')
+pathlib.Path('preview.html').write_text('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0">'+prev+'</body></html>')
+print(len(out)//1024,'KB')
