@@ -43,7 +43,8 @@ export default tseslint.config(
     rules: { ...reactHooks.configs.recommended.rules },
   },
   {
+    // scripts Node qui exécutent aussi du code dans la page (page.evaluate)
     files: ['tests/**/*.mjs', 'tools/**/*.mjs'],
-    languageOptions: { globals: { ...globals.node } },
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 );

@@ -11,6 +11,6 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run --reporter=verbose --reporter=junit --outputFile.junit=../../test-results/vitest/sim-core.xml"
   }
 }

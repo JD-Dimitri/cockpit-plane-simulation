@@ -11,7 +11,7 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run --reporter=verbose --reporter=junit --outputFile.junit=../../test-results/vitest/aircraft-a350.xml"
   },
   "dependencies": {
     "@a350/sim-core": "workspace:*",

@@ -1,4 +1,12 @@
-name: CI
+# Compilation et validation Windows de l'application (phase 1).
+#
+# Job 1 « build »   : dépendances réelles, TypeScript, ESLint, Vitest (moteur, données, composants
+#                     React), build Vite, test navigateur du build, compilation Rust + Tauri, installeur NSIS.
+# Job 2 « install » : machine Windows NEUVE, réseau sortant coupé par le pare-feu, installation
+#                     silencieuse de l'installeur, lancement réel de l'application installée,
+#                     contrôles (moteur, globe Three.js, route, statuts, aucune requête externe),
+#                     second lancement, désinstallation.
+name: Windows
 
 on:
   push:
@@ -7,44 +15,31 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: windows-${{ github.ref }}
   cancel-in-progress: true
 
-jobs:
-  checks:
-    name: Types, lint, tests, interface hors ligne
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      # Premier passage sans pnpm-lock.yaml : committer le fichier généré, puis passer en --frozen-lockfile.
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
-      - run: pnpm exec playwright install --with-deps chromium
-      - name: Test de fumée (aucune requête réseau, avertissement, moteur)
-        run: pnpm e2e apps/desktop/dist
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: capture-interface
-          path: test-results/
-          if-no-files-found: ignore
+defaults:
+  run:
+    shell: pwsh
 
-  windows-installer:
-    name: Installeur Windows (NSIS, WebView2 hors ligne)
-    needs: checks
+jobs:
+  build:
+    name: Compilation, tests et installeur
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # historique complet (phase 0 + étiquette v0.0.0)
+
+      - name: Historique et étiquette v0.0.0
+        run: |
+          git log --oneline --decorate | Tee-Object -FilePath history.txt
+          git rev-parse 'v0.0.0^{commit}'
+          git diff --quiet v0.0.0 HEAD -- legacy/prototype-v0
+          if ($LASTEXITCODE -ne 0) { Write-Error "Le prototype historique a été modifié depuis v0.0.0"; exit 1 }
+          "Prototype legacy/prototype-v0 identique à v0.0.0" | Tee-Object -FilePath history.txt -Append
+
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -54,10 +49,167 @@ jobs:
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: apps/desktop/src-tauri -> target
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm desktop:build
+
+      - name: Versions des outils
+        run: |
+          node --version; pnpm --version; rustc --version; cargo --version
+
+      # Premier passage sans pnpm-lock.yaml : le fichier généré est publié en artefact pour être versionné,
+      # puis cette étape passera en --frozen-lockfile.
+      - name: Dépendances réelles (pnpm install)
+        run: pnpm install --no-frozen-lockfile
+      - name: Versions installées (React, Vite, Zustand, Three.js, Vitest, Tauri)
+        run: pnpm -r list react react-dom vite zustand three vitest @tauri-apps/cli @tauri-apps/api zod typescript --depth 0 | Tee-Object -FilePath versions.txt
+
+      - name: TypeScript (tous les paquets, composants React compris)
+        run: pnpm typecheck
+      - name: ESLint (règles d'architecture et de sécurité)
+        run: pnpm lint
+      - name: Vitest (moteur, données, composants React)
+        run: pnpm test
+      - name: Build Vite (React + Three.js)
+        run: pnpm build
+      - name: Navigateur Chromium pour le test du build
+        run: pnpm exec playwright install chromium
+      - name: Test du build dans un navigateur (aucune requête externe)
+        run: pnpm e2e apps/desktop/dist
+
+      - name: Compilation Rust + Tauri + installeur NSIS (WebView2 offlineInstaller)
+        run: pnpm desktop:build
+
+      - name: Installeur produit
+        id: installer
+        run: |
+          $exe = Get-ChildItem apps/desktop/src-tauri/target/release/bundle/nsis/*.exe | Select-Object -First 1
+          if (-not $exe) { Write-Error "Aucun installeur produit"; exit 1 }
+          $mb = [math]::Round($exe.Length / 1MB, 1)
+          $sha = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash
+          "Installeur : $($exe.Name) — $mb Mo — SHA-256 $sha" | Tee-Object -FilePath installer.txt
+          # L'installeur WebView2 hors ligne (Evergreen Standalone) pèse plus de 100 Mo :
+          # un installeur NSIS plus petit signifierait qu'il n'est pas embarqué.
+          if ($exe.Length -lt 100MB) { Write-Error "Installeur trop petit ($mb Mo) : WebView2 hors ligne absent ?"; exit 1 }
+          "WebView2 hors ligne embarqué (taille cohérente)" | Tee-Object -FilePath installer.txt -Append
+
+      - name: Rapport du job
+        if: always()
+        run: |
+          "## Compilation Windows" >> $env:GITHUB_STEP_SUMMARY
+          foreach ($f in 'history.txt','installer.txt') { if (Test-Path $f) { '```' >> $env:GITHUB_STEP_SUMMARY; Get-Content $f >> $env:GITHUB_STEP_SUMMARY; '```' >> $env:GITHUB_STEP_SUMMARY } }
+          New-Item -ItemType Directory -Force test-results | Out-Null
+          foreach ($f in 'history.txt','installer.txt','versions.txt','pnpm-lock.yaml') { if (Test-Path $f) { Copy-Item $f test-results/ } }
+
       - uses: actions/upload-artifact@v4
         with:
           name: installeur-windows
           path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultats-build
+          path: test-results/
+          if-no-files-found: ignore
+
+  install:
+    name: Installation et lancement hors ligne (machine neuve)
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Installé hors du dépôt (le dépôt est un espace pnpm) ; aucun navigateur téléchargé :
+      # le test se connecte au WebView2 de l'application installée.
+      - name: Playwright (pilotage du WebView2 de l'application)
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          npm install --prefix "$env:RUNNER_TEMP/pw" --no-package-lock playwright@1.63.0
+          "NODE_PATH=$env:RUNNER_TEMP\pw\node_modules" >> $env:GITHUB_ENV
+      - uses: actions/download-artifact@v4
+        with:
+          name: installeur-windows
+          path: installer
+
+      - name: État initial de WebView2
+        run: |
+          New-Item -ItemType Directory -Force test-results/windows | Out-Null
+          $key = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'
+          $v = (Get-ItemProperty $key -ErrorAction SilentlyContinue).pv
+          "WebView2 avant installation : $(if ($v) { $v } else { 'absent' })" | Tee-Object -FilePath test-results/windows/webview2.txt
+
+      # Tentative de désinstallation de WebView2 pour exercer le chemin « installeur hors ligne ».
+      # Windows peut la refuser (WebView2 lié au système) : le résultat est consigné, sans échec du job.
+      - name: Désinstallation de WebView2 (au mieux)
+        continue-on-error: true
+        run: |
+          $setup = Get-ChildItem 'C:\Program Files (x86)\Microsoft\EdgeWebView\Application\*\Installer\setup.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($setup) { Start-Process $setup.FullName -ArgumentList '--uninstall','--msedgewebview','--system-level','--verbose-logging','--force-uninstall' -Wait }
+          Start-Sleep 5
+          $exists = Test-Path 'C:\Program Files (x86)\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe'
+          "WebView2 après tentative de désinstallation : $(if ($exists) { 'toujours présent' } else { 'retiré' })" | Tee-Object -FilePath test-results/windows/webview2.txt -Append
+
+      - name: Coupure du réseau sortant (pare-feu Windows)
+        run: |
+          # Autorise uniquement l'agent GitHub (sinon le job serait perdu) et le DNS dont il dépend.
+          $runner = Get-Process -Name Runner.Listener, Runner.Worker -ErrorAction SilentlyContinue | ForEach-Object Path | Select-Object -Unique
+          foreach ($p in $runner) { New-NetFirewallRule -DisplayName "CI allow $(Split-Path $p -Leaf)" -Direction Outbound -Program $p -Action Allow | Out-Null }
+          New-NetFirewallRule -DisplayName 'CI allow DNS' -Direction Outbound -Protocol UDP -RemotePort 53 -Action Allow | Out-Null
+          Set-NetFirewallProfile -Profile Domain, Public, Private -DefaultOutboundAction Block -Enabled True
+          # Preuve : une requête Internet depuis cette machine doit échouer.
+          try { Invoke-WebRequest https://www.microsoft.com -TimeoutSec 10 -UseBasicParsing | Out-Null; $cut = $false } catch { $cut = $true }
+          "Réseau sortant coupé : $cut (agent GitHub autorisé : $($runner -join ', '))" | Tee-Object -FilePath test-results/windows/reseau.txt
+          if (-not $cut) { Write-Error "La coupure réseau n'est pas effective"; exit 1 }
+
+      - name: Installation silencieuse, réseau coupé
+        run: |
+          $exe = Get-ChildItem installer/*.exe | Select-Object -First 1
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          $p = Start-Process $exe.FullName -ArgumentList '/S' -Wait -PassThru
+          $sw.Stop()
+          $app = Get-ChildItem "$env:LOCALAPPDATA" -Recurse -Filter 'a350-simulator.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
+          $wv = Test-Path 'C:\Program Files (x86)\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe'
+          @(
+            "Code de sortie de l'installeur : $($p.ExitCode)",
+            "Durée d'installation : $([math]::Round($sw.Elapsed.TotalSeconds,1)) s",
+            "Exécutable installé : $(if ($app) { $app.FullName } else { 'INTROUVABLE' })",
+            "WebView2 présent après installation : $wv"
+          ) | Tee-Object -FilePath test-results/windows/installation.txt
+          if ($p.ExitCode -ne 0 -or -not $app -or -not $wv) { Write-Error "Installation incomplète"; exit 1 }
+          "APP_EXE=$($app.FullName)" >> $env:GITHUB_ENV
+
+      - name: Premier et second lancement de l'application installée, réseau coupé
+        run: node tests/windows/installed-app.mjs "$env:APP_EXE" test-results/windows
+
+      - name: Désinstallation silencieuse
+        if: always() && env.APP_EXE != ''
+        run: |
+          $dir = Split-Path $env:APP_EXE
+          $un = Get-ChildItem $dir -Filter 'uninstall.exe' | Select-Object -First 1
+          if ($un) { Start-Process $un.FullName -ArgumentList '/S' -Wait; Start-Sleep 5 }
+          "Désinstallation : $(if (Test-Path $env:APP_EXE) { 'ÉCHEC, exécutable encore présent' } else { 'exécutable supprimé' })" | Tee-Object -FilePath test-results/windows/desinstallation.txt
+
+      - name: Rétablissement du réseau
+        if: always()
+        run: Set-NetFirewallProfile -Profile Domain, Public, Private -DefaultOutboundAction Allow
+
+      - name: Rapport du job
+        if: always()
+        run: |
+          "## Installation et lancement sous Windows" >> $env:GITHUB_STEP_SUMMARY
+          Get-ChildItem test-results/windows/*.txt -ErrorAction SilentlyContinue | ForEach-Object { '```' >> $env:GITHUB_STEP_SUMMARY; Get-Content $_ >> $env:GITHUB_STEP_SUMMARY; '```' >> $env:GITHUB_STEP_SUMMARY }
+          if (Test-Path test-results/windows/resultats.json) {
+            $r = Get-Content test-results/windows/resultats.json | ConvertFrom-Json
+            "| Contrôle | Résultat | Détail |" >> $env:GITHUB_STEP_SUMMARY
+            "|---|---|---|" >> $env:GITHUB_STEP_SUMMARY
+            foreach ($c in $r.results) { "| $($c.name) | $(if ($c.ok) { 'OK' } else { 'ÉCHEC' }) | $(($c.detail -replace '\|','/') -replace "`n",' ') |" >> $env:GITHUB_STEP_SUMMARY }
+          }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultats-windows
+          path: test-results/
+          if-no-files-found: ignore

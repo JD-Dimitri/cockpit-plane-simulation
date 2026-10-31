@@ -16,4 +16,4 @@ node tools/offline-check/build-app.mjs && node tests/e2e/smoke.mjs tools/offline
 tsc -p tools/offline-check/tsconfig.packages.json
 ```
 
-À supprimer dès que la CI officielle est au vert.
+**Jamais utilisé par la CI ni pour déclarer une validation.** À supprimer dès que la CI Windows officielle est au vert.
