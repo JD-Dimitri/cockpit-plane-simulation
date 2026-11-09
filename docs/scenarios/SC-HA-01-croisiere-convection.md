@@ -1,6 +1,6 @@
 # SC-HA-01 — Croisière en haute altitude près d'une zone orageuse : givrage, turbulence, survitesse
 
-> Version 0.1 — 09/11/2026 — **spécification** (rien n'est encore jouable).
+> Version 0.2 — 09/11/2026 (décisions D-6 à D-8 prises) — **spécification** (rien n'est encore jouable).
 > Scénario **générique et fictif**. Il ne reconstitue aucun vol ni aucun accident réel, et aucune donnée d'un accident n'y est utilisée.
 > Les contenus pédagogiques citent des sources publiques. Les principes de récupération cités sont **génériques** (FAA) et ne sont **pas des procédures Airbus** : la FAA rappelle elle-même que « la procédure du constructeur prime » ([AC 120-111](https://www.faa.gov/documentLibrary/media/Advisory_Circular/AC_120-111.pdf), § 4-2).
 
@@ -126,13 +126,13 @@ Ces fiches sont **théoriques** : le scénario ne place pas volontairement l'él
 | S-3 | Distance recommandée pour contourner un orage | à reprendre d'une source OACI / FAA / SKYbrary | — |
 | S-4 | Effets des cristaux de glace (sondes, moteurs) | rapport HAIC à lire | — |
 | S-5 | Valeur de MMO de l'A350-900 | `estimé` dans le projet (0,89) | — |
-| D-6 | Le scénario note-t-il l'élève sur la survitesse ? | proposé : non, tant que S-1 n'est pas sourcé | **toi** |
-| D-7 | Ajouter une fonction radar météo au ND (nouvelle exigence) | proposé : oui, phase 5 | **toi** |
-| D-8 | Fiche FAA « nose low » affichée dans l'aide | proposé : oui, avec la mention « générique » | **toi** |
+| D-6 | Le scénario note-t-il l'élève sur la survitesse ? | **décidé (09/11/2026)** : non, tant que S-1 n'est pas sourcé | validé |
+| D-7 | Ajouter une fonction radar météo au ND (nouvelle exigence) | **décidé (09/11/2026)** : oui, phase 5 (EF-056) | validé |
+| D-8 | Fiche FAA « nose low » affichée dans l'aide | **décidé (09/11/2026)** : oui, avec la mention « générique » | validé |
 
-## 8. Exigences techniques nouvelles (proposées, non ajoutées à SPECIFICATIONS.md)
+## 8. Exigences techniques nouvelles (ajoutées à SPECIFICATIONS.md le 09/11/2026)
 
-| Id proposé | Exigence | Vérification |
+| Id | Exigence | Vérification |
 |---|---|---|
 | EF-053 | Moteur de scénarios : événements météo programmés (cellule, rafale, saut de température) | Test : l'événement se déclenche au temps prévu |
 | EF-054 | Turbulence par zone, avec variation du facteur de charge et de la vitesse | Test : statistiques de n et de V dans la zone |

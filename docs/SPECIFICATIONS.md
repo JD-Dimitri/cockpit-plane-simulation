@@ -78,6 +78,11 @@ Détail des dépendances dans `A350_SYSTEMS_MAP.md`.
 | EF-050 | Météo réglable : vent par couche, rafales, turbulence, visibilité, plafond, température, QNH | M | Tests physiques (vitesse sol, dérive) | 5 |
 | EF-051 | Scénarios décrits en JSON validé : conditions initiales, événements programmés, objectifs, critères | M | Test de schéma | 5 |
 | EF-052 | 10 scénarios : vol normal, vent de travers, turbulence, visibilité réduite, panne moteur au décollage, panne électrique, panne hydraulique, déroutement, remise des gaz, cockpit froid complet | M | Chaque scénario joué par un test automatique | 5 |
+| EF-053 | Moteur de scénarios : événements météo programmés (cellule orageuse, rafale, saut de température) | M | Test : l'événement se déclenche au temps prévu | 5 |
+| EF-054 | Turbulence par zone, avec variation du facteur de charge et de la vitesse | M | Test : statistiques de n et de V dans la zone | 5 |
+| EF-055 | Calcul et affichage de la marge (vitesse de décrochage à 1,3 g, MMO), marqués « estimé » | M | Test : valeur conforme à la formule de SC-HA-01 § 3.1 | 5 |
+| EF-056 | Radar météo simplifié sur le ND (échos fictifs étiquetés) | S | Capture de référence | 5 |
+| EF-057 | Pause automatique et débriefing quand une limite est dépassée, sans scène d'accident | M | Test E2E | 5 |
 
 ### 2.6 Pédagogie
 
@@ -135,3 +140,11 @@ Détail des dépendances dans `A350_SYSTEMS_MAP.md`.
 | D-3 | PC de référence | À définir avec le matériel disponible | Phase 1 |
 | D-4 | Source de la carte d'altitude | ETOPO / GMTED / SRTM (licence à vérifier) | Phase 1 |
 | D-5 | Contenu OIS | Carnet, calculs, fiches pédagogiques (pas de données Airbus) | Phase 7 |
+
+### Décisions prises
+
+| # | Décision | Date |
+|---|---|---|
+| D-6 | SC-HA-01 : la réaction de l'élève à la survitesse n'est pas notée tant qu'aucune source publique ne décrit son traitement sur A350 | 09/11/2026 |
+| D-7 | Radar météo simplifié sur le ND : ajouté (EF-056) | 09/11/2026 |
+| D-8 | Fiche FAA « nose low » (AC 120-111) affichée dans l'aide « ? », avec la mention « principe générique, la procédure du constructeur prime » | 09/11/2026 |
