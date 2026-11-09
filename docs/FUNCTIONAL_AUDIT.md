@@ -1,6 +1,6 @@
 # FUNCTIONAL_AUDIT — Diagnostic du prototype v0
 
-> Version 0.1 — 31/10/2026. Source : document d'audit validé (Claude Docs « A350 Flight Simulator — Audit du prototype et plan de refonte Windows », révision 13), converti ici en Markdown.
+> Version 0.1 — 31/10/2026. Source : document d’audit validé « A350 Flight Simulator — Audit du prototype et plan de refonte Windows » (révision 13), converti ici en Markdown.
 > Auto-audit : rédigé par l'auteur du prototype, à faire relire par une autre personne avant la phase 1.
 
 ## 0. Synthèse

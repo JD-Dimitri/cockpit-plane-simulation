@@ -36,7 +36,7 @@ jobs:
         run: |
           git log --oneline --decorate | Tee-Object -FilePath history.txt
           # Commit de la phase 0 (gel du prototype), référence permanente même sans étiquette
-          $phase0 = 'cbf3f803af1b02a95fe37b407aaaa000a4080d9f'
+          $phase0 = '71c495799ef3d3d11dfae5fb0f61cc8500b922a8'
           git cat-file -e "$phase0^{commit}"
           if ($LASTEXITCODE -ne 0) { Write-Error "Commit de la phase 0 absent de l'historique"; exit 1 }
           $tag = git rev-parse --verify --quiet 'v0.0.0^{commit}'
