@@ -9,6 +9,8 @@ Catégories : Ajouté · Modifié · Corrigé · Supprimé · Données (valeurs 
 - Phase 0 : les 10 documents de cadrage dans `docs/` (v0.1) ; prototype gelé dans `legacy/prototype-v0` (étiquette `v0.0.0`), scripts de test rendus indépendants du chemin.
 - Phase 1 : monorepo pnpm ; `@a350/sim-core` (boucle à pas fixe 60 Hz, pause, accélération ×1 à ×256, plafond de pas par image, journal de commandes, rejeu déterministe, sauvegarde/reprise, ISA, géodésie, conversions vrai/magnétique) ; `@a350/aircraft-a350` (données sourcées, validation Zod) ; application React 19 + Vite avec moteur en Web Worker, avertissement au premier lancement, sonde ISA, globe Three.js, tableau des statuts ; coquille Tauri 2 (NSIS, WebView2 hors ligne, CSP) ; CI GitHub Actions ; test de fumée Playwright.
 
+- Spécification du scénario générique SC-HA-01 (croisière haute altitude, convection, givrage, turbulence, survitesse) : `docs/scenarios/SC-HA-01-croisiere-convection.md`. Non jouable avant les phases 2, 4 et 5 ; ne reconstitue aucun accident.
+
 ### Modifié
 - Poussée au décollage portée à 374 500 N (EASA TCDS E.111), au lieu de 374 000 N dans v0.
 
