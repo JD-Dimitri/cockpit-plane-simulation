@@ -78,6 +78,22 @@ function diagnose(exited) {
   ps(`Add-Type -AssemblyName System.Windows.Forms, System.Drawing; $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height; $g = [System.Drawing.Graphics]::FromImage($bmp); $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size); $bmp.Save('${shot}')`);
 }
 
+/**
+ * Requêtes faites avant que le test ne se branche : relevées dans l'historique de chargement
+ * du navigateur (Resource Timing), ajoutées au contrôle « aucune requête externe ».
+ */
+async function early(page, w) {
+  for (let i = 0; i < 60 && !page.url().startsWith('http://tauri.localhost'); i++) await sleep(500);
+  try { await page.waitForLoadState('load', { timeout: 15_000 }); } catch { /* déjà chargé */ }
+  const urls = await page.evaluate(() => [location.href, ...performance.getEntriesByType('resource').map((e) => e.name)]);
+  for (const raw of urls) {
+    const u = new URL(raw);
+    if (u.protocol === 'data:' || u.protocol === 'blob:') continue;
+    w.seen.add(u.host);
+    if (!ALLOWED_HOSTS.has(u.hostname)) w.external.push(raw);
+  }
+}
+
 function watch(page) {
   const external = [], errors = [], seen = new Set();
   page.on('request', (req) => {
@@ -104,7 +120,7 @@ try {
   // ---------- Premier lancement ----------
   const app = await launch();
   const w = watch(app.page);
-  await app.page.reload(); // capte toutes les requêtes depuis le début
+  await early(app.page, w); // requêtes faites avant la connexion du test
   const disc = app.page.getByTestId('disclaimer');
   await disc.waitFor({ timeout: 20_000 });
   check('Premier lancement : avertissement affiché', true, `${((Date.now() - app.t0) / 1000).toFixed(1)} s depuis le lancement de l’exe (cible ENF-003 < 10 s)`);
@@ -175,7 +191,7 @@ try {
   // ---------- Second lancement : acceptation mémorisée ----------
   const app2 = await launch();
   const w2 = watch(app2.page);
-  await app2.page.reload();
+  await early(app2.page, w2);
   await app2.page.getByTestId('main').waitFor({ timeout: 20_000 });
   check('Second lancement : avertissement non redemandé', (await app2.page.getByTestId('disclaimer').count()) === 0);
   await sleep(1500);
