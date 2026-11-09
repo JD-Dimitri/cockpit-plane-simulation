@@ -187,6 +187,18 @@ jobs:
           if ($p.ExitCode -ne 0 -or -not $app -or -not $wv) { Write-Error "Installation incomplète"; exit 1 }
           "APP_EXE=$($app.FullName)" >> $env:GITHUB_ENV
 
+      # Port de débogage ouvert UNIQUEMENT sur la machine de test, par la stratégie WebView2
+      # « AdditionalBrowserArguments » (registre). Le binaire testé est exactement celui de l'installeur :
+      # le logiciel livré n'ouvre aucun port.
+      - name: Port de débogage WebView2 sur la machine de test (registre)
+        run: |
+          foreach ($root in 'HKCU:', 'HKLM:') {
+            $k = "$root\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments"
+            New-Item -Path $k -Force | Out-Null
+            New-ItemProperty -Path $k -Name 'a350-simulator.exe' -Value '--remote-debugging-port=9222' -PropertyType String -Force | Out-Null
+          }
+          "Stratégie WebView2 : --remote-debugging-port=9222 pour a350-simulator.exe (machine de test uniquement)" | Tee-Object -FilePath test-results/windows/debogage.txt
+
       - name: Premier et second lancement de l'application installée, réseau coupé
         run: node tests/windows/installed-app.mjs "$env:APP_EXE" test-results/windows
 
