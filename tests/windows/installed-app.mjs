@@ -9,7 +9,7 @@
 // l'acceptation après redémarrage, aucune requête hors de l'application, aucune erreur console.
 // Le pare-feu Windows est configuré par la CI pour bloquer l'accès réseau sortant de l'application.
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
@@ -35,11 +35,19 @@ async function launch() {
     env: { ...process.env, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${PORT}` },
     stdio: 'ignore',
   });
+  let exited = null;
+  child.on('exit', (code, signal) => { exited = { code, signal }; });
+  child.on('error', (e) => { exited = { error: String(e) }; });
   let browser = null;
-  for (let i = 0; i < 60 && !browser; i++) {
-    try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${PORT}`); } catch { await sleep(500); }
+  // jusqu'à 120 s : le premier lancement après une installation de WebView2 peut être lent
+  for (let i = 0; i < 120 && !browser && !exited; i++) {
+    try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${PORT}`, { timeout: 5000 }); } catch { await sleep(1000); }
   }
-  if (!browser) throw new Error('Impossible de se connecter au WebView2 de l’application');
+  if (!browser) {
+    diagnose(exited);
+    throw new Error(`Impossible de se connecter au WebView2 de l’application après ${((Date.now() - t0) / 1000).toFixed(0)} s`
+      + (exited ? ` — processus terminé : ${JSON.stringify(exited)}` : ' — processus toujours actif'));
+  }
   let page = null;
   for (let i = 0; i < 60 && !page; i++) {
     page = browser.contexts().flatMap((c) => c.pages()).find((p) => !p.url().startsWith('devtools:')) ?? null;
@@ -47,6 +55,27 @@ async function launch() {
   }
   if (!page) throw new Error('Aucune page dans le WebView2');
   return { child, browser, page, t0 };
+}
+
+/** Diagnostic en cas d'échec : processus, port de débogage, capture du bureau. */
+function diagnose(exited) {
+  const ps = (cmd) => {
+    try { return execFileSync('powershell.exe', ['-NoProfile', '-Command', cmd], { encoding: 'utf8', timeout: 30_000 }); }
+    catch (e) { return `échec : ${e.message}`; }
+  };
+  const report = [
+    `Processus de l'application : ${exited ? JSON.stringify(exited) : 'actif'}`,
+    '--- Processus a350 / WebView2 (ligne de commande) ---',
+    ps("Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'a350|msedgewebview2' } | ForEach-Object { \"$($_.Name) [$($_.ProcessId)] $($_.CommandLine)\" }"),
+    `--- Ports en écoute (${PORT}) ---`,
+    ps(`Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object LocalPort -eq ${PORT} | Format-Table -AutoSize | Out-String`),
+    '--- Journal Application (erreurs récentes) ---',
+    ps("Get-WinEvent -FilterHashtable @{LogName='Application'; Level=2; StartTime=(Get-Date).AddMinutes(-10)} -MaxEvents 10 -ErrorAction SilentlyContinue | Format-List TimeCreated, ProviderName, Message | Out-String -Width 300"),
+  ].join('\n');
+  console.log(report);
+  writeFileSync(join(outDir, 'diagnostic.txt'), report);
+  const shot = join(outDir, 'bureau-echec.png').replace(/'/g, "''");
+  ps(`Add-Type -AssemblyName System.Windows.Forms, System.Drawing; $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height; $g = [System.Drawing.Graphics]::FromImage($bmp); $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size); $bmp.Save('${shot}')`);
 }
 
 function watch(page) {
