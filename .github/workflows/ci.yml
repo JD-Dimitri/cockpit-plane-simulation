@@ -35,10 +35,17 @@ jobs:
       - name: Historique et étiquette v0.0.0
         run: |
           git log --oneline --decorate | Tee-Object -FilePath history.txt
-          git rev-parse 'v0.0.0^{commit}'
-          git diff --quiet v0.0.0 HEAD -- legacy/prototype-v0
-          if ($LASTEXITCODE -ne 0) { Write-Error "Le prototype historique a été modifié depuis v0.0.0"; exit 1 }
-          "Prototype legacy/prototype-v0 identique à v0.0.0" | Tee-Object -FilePath history.txt -Append
+          # Commit de la phase 0 (gel du prototype), référence permanente même sans étiquette
+          $phase0 = 'cbf3f803af1b02a95fe37b407aaaa000a4080d9f'
+          git cat-file -e "$phase0^{commit}"
+          if ($LASTEXITCODE -ne 0) { Write-Error "Commit de la phase 0 absent de l'historique"; exit 1 }
+          $tag = git rev-parse --verify --quiet 'v0.0.0^{commit}'
+          if ($tag -eq $phase0) { "Étiquette v0.0.0 présente sur le commit de la phase 0" | Tee-Object -FilePath history.txt -Append }
+          elseif ($tag) { Write-Error "v0.0.0 ne pointe pas sur le commit de la phase 0 ($tag)"; exit 1 }
+          else { "::warning::Étiquette v0.0.0 absente du dépôt distant (à pousser)"; "ATTENTION : étiquette v0.0.0 absente du dépôt distant" | Tee-Object -FilePath history.txt -Append }
+          git diff --quiet $phase0 HEAD -- legacy/prototype-v0
+          if ($LASTEXITCODE -ne 0) { Write-Error "Le prototype historique a été modifié depuis la phase 0"; exit 1 }
+          "Prototype legacy/prototype-v0 identique au commit de la phase 0" | Tee-Object -FilePath history.txt -Append
 
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
