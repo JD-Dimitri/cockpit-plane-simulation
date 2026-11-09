@@ -39,10 +39,10 @@ Le prototype v0 reste jouable pendant toute la refonte.
 | Monorepo pnpm, TypeScript strict, ESLint (règles d'architecture et anti-`innerHTML`) | fait |
 | `sim-core` : pas fixe, pause, accélération, rejeu, sauvegarde/reprise, ISA, géodésie, déclinaison | fait, 22 tests (dont parité exacte avec v0) ; 38 tests au total avec les données et l’application |
 | `aircraft-a350` : données avec statut et sources, validation au chargement (EF-001) | fait |
-| Application React : avertissement (EF-004), Worker moteur, instantanés 30 Hz, sonde ISA, globe Three.js, tableau des données | fait, test de fumée 16/16 (build de secours) |
-| Coquille Tauri 2 : CSP stricte, permissions minimales, NSIS, WebView2 hors ligne, icônes | écrite, **non compilée** (registre crates.io inaccessible) |
-| CI GitHub Actions : tests sous Linux, installeur sous Windows | écrite, **non exécutée** |
-| Livrable vérifiable : installeur Windows qui s'ouvre sans réseau | **à valider** au premier passage de la CI ou sur le PC |
+| Application React : avertissement (EF-004), Worker moteur, instantanés 30 Hz, sonde ISA, globe Three.js, tableau des données | fait : 44 tests Vitest, 16/16 dans Chromium, 19/19 sur l'application installée |
+| Coquille Tauri 2 : CSP stricte, permissions minimales, NSIS, WebView2 hors ligne, icônes | compilée sous Windows (GitHub Actions) |
+| CI GitHub Actions Windows : compilation, tests, installeur, installation et lancement hors ligne sur machine neuve | au vert (exécution 42660272495) |
+| Livrable vérifiable : installeur Windows qui s'ouvre sans réseau | **validé en CI** ([rapport](validation/PHASE1_VALIDATION.md)) ; test sur PC de l'auteur en attente |
 
 ## 3. Risques
 

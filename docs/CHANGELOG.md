@@ -12,6 +12,9 @@ Catégories : Ajouté · Modifié · Corrigé · Supprimé · Données (valeurs 
 - Spécification du scénario générique SC-HA-01 (croisière haute altitude, convection, givrage, turbulence, survitesse) : `docs/scenarios/SC-HA-01-croisiere-convection.md`. Non jouable avant les phases 2, 4 et 5 ; ne reconstitue aucun accident.
 - Exigences EF-053 à EF-057 (scénarios météo, turbulence, marge, radar météo, pause sur limite) et décisions D-6 à D-8 consignées dans `SPECIFICATIONS.md`.
 
+- Validation de la phase 1 sur GitHub Actions Windows : 44 tests Vitest, 16/16 dans Chromium, installeur NSIS de 209,7 Mo, installation hors ligne (WebView2 réinstallé depuis la copie embarquée), 19/19 sur l'application installée réseau coupé. Rapport : `docs/validation/PHASE1_VALIDATION.md`.
+- README complet.
+
 ### Modifié
 - Poussée au décollage portée à 374 500 N (EASA TCDS E.111), au lieu de 374 000 N dans v0.
 
